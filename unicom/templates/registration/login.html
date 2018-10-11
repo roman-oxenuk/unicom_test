@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static widget_tweaks %}
+
+{% block extra_css %}
+  <link href="{% static 'signin.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block body_attr %}class="text-center"{% endblock %}
+
+{% block content %}
+
+
+  <form method="post" action="{% url 'login' %}" class="form-signin">
+    {% csrf_token %}
+
+    <h1 class="h3 mb-3 font-weight-normal">Вход в систему</h1>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger" role="alert">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <label for="{{ form.username.id_for_label }}" class="sr-only">Имя пользователя</label>
+    {% if not form.username.errors %}
+      {{ form.username|attr:"class:form-control"|attr:"placeholder:username" }}
+    {% else %}
+      {{ form.username|attr:"class:form-control is-invalid"|attr:"placeholder:username" }}
+        <div class="invalid-feedback">
+          {{ form.username.errors }}
+        </div>
+      {% endif %}
+
+    <label for="{{ form.password.id_for_label }}" class="sr-only">Пароль</label>
+    {% if not form.password.errors %}
+      {{ form.password|attr:"class:form-control"|attr:"placeholder:password" }}
+    {% else %}
+      {{ form.password|attr:"class:form-control is-invalid"|attr:"placeholder:password" }}
+      <div class="invalid-feedback">
+        {{ form.password.errors }}
+      </div>
+    {% endif %}
+
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Войти</button>
+
+    <input type="hidden" name="next" value="{{ next }}" />
+
+  </form>
+
+{% endblock %}

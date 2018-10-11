@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:3.7.7
+    ports:
+      - '5672:5672'
+
+  db:
+    image: postgres
+    environment:
+      - 'POSTGRES_USER=postgres'
+    ports:
+      - '5432:5432'
+
+  web:
+    build: .
+    command: ./wait-for-it.sh -h db -p 5432 -t 5 -- bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - 'DATABASE_HOST=db'
+      - 'DATABASE_NAME=postgres'
+    volumes:
+      - .:/app
+    ports:
+      - '8000:8000'
+    depends_on:
+      - db
+    links:
+      - db
+
+  celery:
+    build: .
+    command: celery -A unicom worker -B -l info --concurrency=1
+    environment:
+      - 'DATABASE_HOST=db'
+      - 'DATABASE_NAME=postgres'
+      - 'CELERY_BROKER_URL=amqp://guest:guest@rabbit:5672/'
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    links:
+      - db
