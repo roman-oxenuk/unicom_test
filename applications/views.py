@@ -74,6 +74,7 @@ class ApplicationsView(mixins.ListModelMixin,
         return Response(output, status=status.HTTP_201_CREATED, headers=headers)
 
     def get_output(self, serializer):
+
         if isinstance(serializer, self.serializer_class_create_for_all):
             msg = 'Анкета {customer} отправлена на рассмотрение во все кредитные организации.'\
                         .format(customer=serializer.customer)
@@ -91,9 +92,13 @@ class ApplicationsView(mixins.ListModelMixin,
 
                 return {'message': msg}
 
-            # Получаем сериалайзер для чтения и используем его, чтобы вернуть только что созданные Заявки
-            read_serializer = super().get_serializer()
-            return read_serializer(serializer.new_applications, many=True).data
+            # Используем сериалайзер для чтения чтобы вернуть только что созданные Заявки
+            read_serializer = self.serializer_class(
+                serializer.new_applications,
+                many=True,
+                context={'request': self.request}
+            )
+            return read_serializer.data
 
 
 class ApplicationsDetailView(mixins.RetrieveModelMixin,
